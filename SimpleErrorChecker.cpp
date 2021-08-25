@@ -103,6 +103,16 @@ class MyVisitor final : public BugReporterVisitor{
   ProgramStateRef state = N->getState();
   ProgramStateRef statePrev = N->getFirstPred()->getState();
 
+  const ErrorCheckedState *TrackedNullab = state->get<ErrorCheckMap>(Sym);
+  const ErrorCheckedState *TrackedNullabPrev = statePrev->get<ErrorCheckMap>(Sym);
+
+  if (!TrackedNullab)
+    return nullptr;
+
+  if (TrackedNullabPrev &&
+      TrackedNullabPrev == TrackedNullab)
+    return nullptr;
+
   const Stmt *S = N->getStmtForDiagnostics();
   if (!S){
       return nullptr;
@@ -116,7 +126,6 @@ class MyVisitor final : public BugReporterVisitor{
           Sym, "Returned allocated memory");
 
     PathDiagnosticLocation Pos= PathDiagnosticLocation(S, BRC.getSourceManager(),N->getLocationContext());
-    //Pos.dump();
     auto P = std::make_shared<PathDiagnosticEventPiece>(Pos, Msg, true);
     BR.addCallStackHint(P, std::move(StackHint));
     return P;
@@ -133,7 +142,6 @@ void SimpleErrorChecker::checkPostCall(const CallEvent &Call,
   if (!Call.isGlobalCFunction())
     return;
 
-  Call.dump();
   if (!Call.isCalled(mallocFn) && !Call.isCalled(callocFn))
     return;
 
@@ -176,7 +184,6 @@ void SimpleErrorChecker::checkLocation(SVal loc, bool IsLoad, const Stmt *S,
 
 void SimpleErrorChecker::checkPreCall(const CallEvent &Call, CheckerContext &C) const {
   ProgramStateRef State = C.getState();
-  Call.dump();
   for(unsigned int i=0; i < Call.getNumArgs();i++){
     SymbolRef sym = Call.getArgSVal(i).getAsSymbol();
     if (sym){
@@ -220,8 +227,9 @@ void SimpleErrorChecker::checkDeadSymbols(SymbolReaper &SR, CheckerContext &C) c
     SymbolRef Sym = I->first;
     bool IsSymDead = SR.isDead(Sym);
     // Remove the dead symbol from the streams map.
-    if (IsSymDead)
+    if (IsSymDead){
       State = State->remove<ErrorCheckMap>(Sym);
+    }
   } 
 }
 
