@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.4.3)
 
-project(AllocFreeChecker CXX)
-#set(CMAKE_CXX_STANDARD 11)
+project(GBRStaticAnalyzers CXX)
 
 find_package(LLVM REQUIRED CONFIG)
 set(CMAKE_MODULE_PATH ${LLVM_CMAKE_DIR})
@@ -17,8 +16,6 @@ message(STATUS "LLVM_DEFINITIONS:   ${LLVM_DEFINITIONS}")
 message(STATUS "LLVM_INCLUDE_DIRS:  ${LLVM_INCLUDE_DIRS}")
 message(STATUS "CLANG_INCLUDE_DIRS: ${CLANG_INCLUDE_DIRS}")
 
-#set(LLVM_EXPORTED_SYMBOL_FILE ${CMAKE_CURRENT_SOURCE_DIR}/AllocFreePlugin.exports)
-#add_llvm_loadable_module(AllocFreePlugin SimpleErrorChecker.cpp PLUGIN_TOOL clang)
 add_llvm_library(SimpleErrorChecker MODULE SimpleErrorChecker.cpp PLUGIN_TOOL clang)
 
 if(LLVM_ENABLE_PLUGINS AND (WIN32 OR CYGWIN))
@@ -53,23 +50,3 @@ endif()
 #  add_dependencies(check-AllocFreePlugin check-${_test})
 #endforeach()
 #add_custom_target(check DEPENDS check-AllocFreePlugin)
-
-# Somehow does not work...
-# Needs llvm-lit, set via -DLLVM_EXTERNAL_LIT=.../llvm-lit.py
-#add_lit_testsuites(CHECKER ${CMAKE_CURRENT_SOURCE_DIR}/test)
-
-## Copied from LLVM.
-## Add a global check rule now that all subdirectories have been traversed
-## and we know the total set of lit testsuites.
-#get_property(LLVM_LIT_TESTSUITES GLOBAL PROPERTY LLVM_LIT_TESTSUITES)
-#get_property(LLVM_LIT_PARAMS GLOBAL PROPERTY LLVM_LIT_PARAMS)
-#get_property(LLVM_LIT_DEPENDS GLOBAL PROPERTY LLVM_LIT_DEPENDS)
-#get_property(LLVM_LIT_EXTRA_ARGS GLOBAL PROPERTY LLVM_LIT_EXTRA_ARGS)
-#add_lit_target(check-all
-#  "Running all regression tests"
-#  ${LLVM_LIT_TESTSUITES}
-#  PARAMS ${LLVM_LIT_PARAMS}
-#  DEPENDS ${LLVM_LIT_DEPENDS}
-#  ARGS ${LLVM_LIT_EXTRA_ARGS}
-#  )
-# Preamble

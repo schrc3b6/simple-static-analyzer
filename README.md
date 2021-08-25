@@ -1,6 +1,19 @@
 # Static Analyzer #
 
+## Building Analyzer ##
+
+```bash
+mkdir build
+cd build
+cmake ..
+make
+```
+
+There is no install target, yet ...
+
 ## Running this Checker ##
+
+Can be run with any tools that allow to load llvm plugins
 
 ```bash
 export MY_INCLUDES="-I/usr/local/include -I/usr/local/lib/clang/12.0.1/include -I/usr/include"
