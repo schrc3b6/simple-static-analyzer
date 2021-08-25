@@ -24,6 +24,17 @@ clang -cc1 ${=MY_INCLUDES} -load /home/mschroetter/project/SimpleErrorChecker/bu
 scan-build -load-plugin /home/mschroetter/project/SimpleErrorChecker/build/SimpleErrorChecker.so -enable-checker example.ErrorChecker -disable-checker unix.Malloc clang -c ~/testerror.c
 ```
 
+## Debugging ##
+
+```bash
+gdb --args clang -cc1 ${=MY_INCLUDES} -analyze -load /home/mschroetter/project/SimpleErrorChecker/build/SimpleErrorChecker.so -analyzer-checker=example.ErrorChecker testerror.c
+```
+
+```bash
+(gdb) add-symbol-file /home/mschroetter/project/SimpleErrorChecker/build/SimpleErrorChecker.so
+(gdb) br /home/mschroetter/project/SimpleErrorChecker/SimpleErrorChecker.cpp:251
+```
+
 ## Problems ##
 
 [See Issues](https://gitup.uni-potsdam.de/maxschro/llvm-static-analyzers/issues)
