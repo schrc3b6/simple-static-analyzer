@@ -20,8 +20,14 @@ export MY_INCLUDES="-I/usr/local/include -I/usr/local/lib/clang/12.0.1/include -
 clang -cc1 ${=MY_INCLUDES} -load /home/mschroetter/project/SimpleErrorChecker/build/SimpleErrorChecker.so -analyze -analyzer-checker=example.ErrorChecker ~/testerror.c
 ```
 
+scan-build
 ```bash
 scan-build -load-plugin /home/mschroetter/project/SimpleErrorChecker/build/SimpleErrorChecker.so -enable-checker example.ErrorChecker -disable-checker unix.Malloc clang -c ~/testerror.c
+```
+
+clang with html output
+```bash
+/usr/local/bin/clang-12 -cc1 -triple x86_64-unknown-linux-gnu -analyze -disable-free -analyzer-store=region -analyzer-opt-analyze-nested-blocks -w -setup-static-analyzer -mrelocation-model static -mframe-pointer=all -fmath-errno -fno-rounding-math -mconstructor-aliases -munwind-tables -target-cpu x86-64 -tune-cpu generic -fno-split-dwarf-inlining -debugger-tuning=gdb -resource-dir /usr/local/lib/clang/12.0.1 -internal-isystem /usr/local/include -internal-isystem /usr/local/lib/clang/12.0.1/include -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdebug-compilation-dir /home/mschroetter/project/SimpleErrorChecker/build -ferror-limit 19 -fgnuc-version=4.2.1 -analyzer-display-progress -analyzer-checker example.ErrorChecker -load /home/mschroetter/project/SimpleErrorChecker/build/SimpleErrorChecker.so -analyzer-output=html -faddrsig -o /tmp/scan-build -x c test/sameFnIf_true.c
 ```
 
 ## Debugging ##
@@ -33,6 +39,12 @@ gdb --args clang -cc1 ${=MY_INCLUDES} -analyze -load /home/mschroetter/project/S
 ```bash
 (gdb) add-symbol-file /home/mschroetter/project/SimpleErrorChecker/build/SimpleErrorChecker.so
 (gdb) br /home/mschroetter/project/SimpleErrorChecker/SimpleErrorChecker.cpp:251
+```
+
+## Running Tests ##
+
+```bash
+make test
 ```
 
 ## Problems ##
