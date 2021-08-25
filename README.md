@@ -26,4 +26,4 @@ scan-build -load-plugin /home/mschroetter/project/SimpleErrorChecker/build/Simpl
 
 ## Problems ##
 
-see issues
+[See Issues](https://gitup.uni-potsdam.de/maxschro/llvm-static-analyzers/issues)
