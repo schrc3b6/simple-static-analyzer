@@ -1,19 +1,3 @@
-//===-- SimpleStreamChecker.cpp -----------------------------------------*- C++ -*--//
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//===----------------------------------------------------------------------===//
-//
-// Defines a checker for proper use of fopen/fclose APIs.
-//   - If a file has been closed with fclose, it should not be accessed again.
-//   Accessing a closed file results in undefined behavior.
-//   - If a file was opened with fopen, it must be closed with fclose before
-//   the execution ends. Failing to do so results in a resource leak.
-//
-//===----------------------------------------------------------------------===//
-
 #include <clang/StaticAnalyzer/Checkers/BuiltinCheckerRegistration.h>
 #include <clang/StaticAnalyzer/Core/BugReporter/BugType.h>
 #include <clang/StaticAnalyzer/Core/BugReporter/BugReporterVisitors.h>
@@ -22,13 +6,6 @@
 #include <clang/StaticAnalyzer/Core/PathSensitive/CallEvent.h>
 #include <clang/StaticAnalyzer/Core/PathSensitive/CheckerContext.h>
 #include <clang/StaticAnalyzer/Core/PathSensitive/SymExpr.h>
-//#include "clang/StaticAnalyzer/Checkers/BuiltinCheckerRegistration.h"
-//#include "clang/StaticAnalyzer/Core/BugReporter/BugType.h"
-//#include "clang/StaticAnalyzer/Core/BugReporter/BugReporterVisitors.h"
-//#include "clang/StaticAnalyzer/Core/Checker.h"
-//#include "clang/StaticAnalyzer/Core/PathSensitive/CallEvent.h"
-//#include "clang/StaticAnalyzer/Core/PathSensitive/CheckerContext.h"
-//#include "clang/StaticAnalyzer/Core/PathSensitive/SymExpr.h"
 #include <iostream>
 #include <utility>
 
@@ -69,14 +46,6 @@ class SimpleErrorChecker : public Checker<check::PostCall,
                          SourceRange range,
                          CheckerContext &C) const;
 
-  /*
-  void reportLeaks(ArrayRef<SymbolRef> LeakedStreams,
-                                      CheckerContext &C,
-                                      ExplodedNode *ErrNode) const;
-                                      */
-
-  //bool guaranteedNotToCloseFile(const CallEvent &Call) const;
-
 public:
   SimpleErrorChecker();
 
@@ -97,8 +66,6 @@ public:
 
 } // end anonymous namespace
 
-/// The state of the checker is a map from tracked stream symbols to their
-/// state. Let's store it in the ProgramState.
 REGISTER_MAP_WITH_PROGRAMSTATE(ErrorCheckMap, SymbolRef, ErrorCheckedState)
 
 namespace {
@@ -157,14 +124,12 @@ class MyVisitor final : public BugReporterVisitor{
 
 SimpleErrorChecker::SimpleErrorChecker()
     : mallocFn("malloc"), callocFn("calloc") {
-  // Initialize the bug types.
   UseBeforCheckBugType.reset(
       new BugType(this, "Use variable before allocation check", "Unix Stream API Error"));
 }
 
 void SimpleErrorChecker::checkPostCall(const CallEvent &Call,
                                         CheckerContext &C) const {
-  std::cout << "test";
   if (!Call.isGlobalCFunction())
     return;
 
@@ -172,14 +137,12 @@ void SimpleErrorChecker::checkPostCall(const CallEvent &Call,
   if (!Call.isCalled(mallocFn) && !Call.isCalled(callocFn))
     return;
 
-  std::cout << "test2";
 
   // Get the symbolic value corresponding to the file handle.
   SymbolRef AllocVar = Call.getReturnValue().getAsSymbol();
   if (!AllocVar)
     return;
 
-  std::cout << "test3";
   // Generate the next transition (an edge in the exploded graph).
   ProgramStateRef State = C.getState();
   State = State->set<ErrorCheckMap>(AllocVar, ErrorCheckedState::getUnchecked());
@@ -211,42 +174,6 @@ void SimpleErrorChecker::checkLocation(SVal loc, bool IsLoad, const Stmt *S,
   }
 }
 
-
-/*
-  std::cout << "\n\n State:\n";
-  State->dump();
-  std::cout << "\n\n Statement:\n";
-  S->dump();
-  std::cout << "\n\n Location:\n";
-  loc.dump();
-  std::cout << "\n\n locSymbol:\n";
-  if(loc.getAsLocSymbol()){
-    loc.getAsLocSymbol()->dump();
-  std::cout << "\n\n StateMap:\n";
-  const ErrorCheckedState *SS = State->get<ErrorCheckMap>(loc.getAsLocSymbol());
-  std::cout << "isUnchecked: " << SS->isUnchecked();
-          }
-
-  std::cout << "\n\n Constraints:\n";
-  ErrorCheckMapTy TrackedStreams = State->get<ErrorCheckMap>();
-  for (ErrorCheckMapTy::iterator I = TrackedStreams.begin(),
-                             E = TrackedStreams.end(); I != E; ++I) {
-    SymbolRef Sym = I->first;
-
-  std::cout << "\n\n Symbols:\n";
-  Sym->dump();
-  //ProgramStateRef State = C.getState();
-  ConstraintManager &CMgr = State->getConstraintManager();
-  
-  //SymbolRef Sym = val.getAsSymbol();
-  ConditionTruthVal Unchecked = CMgr.isNull(State, Sym);
-  
-  std::cout << "\n\n Constraint isNull isFalse:\n";
-  std::cout << Unchecked.isConstrainedFalse();
-  }
-}
-*/
-
 void SimpleErrorChecker::checkPreCall(const CallEvent &Call, CheckerContext &C) const {
   ProgramStateRef State = C.getState();
   Call.dump();
@@ -254,16 +181,11 @@ void SimpleErrorChecker::checkPreCall(const CallEvent &Call, CheckerContext &C) 
     SymbolRef sym = Call.getArgSVal(i).getAsSymbol();
     if (sym){
       const ErrorCheckedState *symState = State->get<ErrorCheckMap>(sym);
-      std::cout << "test4";
       if(symState && symState->isUnchecked()){
-        std::cout << "test5";
         ConstraintManager &CMgr = State->getConstraintManager();
         ConditionTruthVal Unchecked = CMgr.isNull(State, sym);
 
-        std::cout << "\n\nValue:\n";
-        std::cout << Unchecked.getValue();
         if(!Unchecked.isConstrainedFalse()){
-          std::cout << "test6";
           SourceRange range = Call.getSourceRange();
           reportUseBeforCheck(sym,range, C);
         }
@@ -276,14 +198,10 @@ void SimpleErrorChecker::checkPreCall(const CallEvent &Call, CheckerContext &C) 
 void SimpleErrorChecker::reportUseBeforCheck(SymbolRef Sym,
                                             SourceRange range,
                                             CheckerContext &C) const {
-  // We reached a bug, stop exploring the path here by generating a sink.
   ExplodedNode *ErrNode = C.generateErrorNode();
-  // If we've already reached this node on another path, return.
   if (!ErrNode)
     return;
 
-          std::cout << "test7";
-  // Generate the report.
   auto R = std::make_unique<PathSensitiveBugReport>(
       *UseBeforCheckBugType, "Using Variable before checking it for Errors", ErrNode);
   R->addRange(range);
@@ -307,8 +225,6 @@ void SimpleErrorChecker::checkDeadSymbols(SymbolReaper &SR, CheckerContext &C) c
   } 
 }
 
-// If the pointer we are tracking escaped, do not track the symbol as
-// we cannot reason about it anymore.
 ProgramStateRef
 SimpleErrorChecker::checkPointerEscape(ProgramStateRef State,
                                         const InvalidatedSymbols &Escaped,
@@ -322,21 +238,7 @@ SimpleErrorChecker::checkPointerEscape(ProgramStateRef State,
   }
   return State;
 }
-/*
-void SimpleErrorChecker::reportLeaks(ArrayRef<SymbolRef> LeakedStreams,
-                                      CheckerContext &C,
-                                      ExplodedNode *ErrNode) const {
-  // Attach bug reports to the leak node.
-  // TODO: Identify the leaked file descriptor.
-  for (SymbolRef LeakedStream : LeakedStreams) {
-    auto R = std::make_unique<PathSensitiveBugReport>(
-        *LeakBugType, "Opened file is never closed; potential resource leak",
-        ErrNode);
-    R->markInteresting(LeakedStream);
-    C.emitReport(std::move(R));
-  }
-}
-*/
+
 // Register plugin!
 extern "C" void clang_registerCheckers(CheckerRegistry &registry) {
   registry.addChecker<SimpleErrorChecker>(
