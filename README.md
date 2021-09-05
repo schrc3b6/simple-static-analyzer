@@ -1,5 +1,7 @@
 # Static Analyzer #
 
+I've build this to learn about LLVM's static Analyzer. This is just for learning purposes.
+
 ## Building Analyzer ##
 
 Building as Plugin
