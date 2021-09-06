@@ -16,9 +16,10 @@ make
 Building in Tree
 
 1. Copy SimpleErrorChecker.cpp to clang/lib/StaticAnalyzer/Checkers/
-2. Add SimpleErrorChecker.cpp to the CMakeLists.txt in clang/lib/StaticAnalyzer/Checkers/
-3. Add SimpleErrorChecker to llvm/clang/include/clang/StaticAnalyzer/Checkers/Checkers.td by copying SimpleStreamCheckers entry and modifying it accordingly.
-4. Build llvm
+2. Comment Register Plugin Section out in SimpleErrorChecker and Uncomment Register in tree section
+3. Add SimpleErrorChecker.cpp to the CMakeLists.txt in clang/lib/StaticAnalyzer/Checkers/
+4. Add SimpleErrorChecker to llvm/clang/include/clang/StaticAnalyzer/Checkers/Checkers.td by copying SimpleStreamCheckers entry and modifying it accordingly.
+5. Build llvm
 
 ## Running this Checker ##
 

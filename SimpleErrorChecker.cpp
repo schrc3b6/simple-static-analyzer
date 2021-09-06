@@ -258,6 +258,7 @@ extern "C" void clang_registerCheckers(CheckerRegistry &registry) {
 extern "C" const char clang_analyzerAPIVersionString[] =
     CLANG_ANALYZER_API_VERSION_STRING;
 
+// Register Checker in tree 
 /*
 void ento::registerSimpleErrorChecker(CheckerManager &mgr) {
   mgr.registerChecker<SimpleErrorChecker>();
