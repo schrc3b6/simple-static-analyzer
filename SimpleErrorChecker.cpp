@@ -192,7 +192,7 @@ void SimpleErrorChecker::checkPreCall(const CallEvent &Call, CheckerContext &C) 
         ConstraintManager &CMgr = State->getConstraintManager();
         ConditionTruthVal Unchecked = CMgr.isNull(State, sym);
 
-        if(!Unchecked.isConstrainedFalse()){
+        if(!Unchecked.isConstrainedFalse() || Unchecked.isConstrainedTrue()){
           SourceRange range = Call.getSourceRange();
           reportUseBeforCheck(sym,range, C);
         }
@@ -205,7 +205,7 @@ void SimpleErrorChecker::checkPreCall(const CallEvent &Call, CheckerContext &C) 
 void SimpleErrorChecker::reportUseBeforCheck(SymbolRef Sym,
                                             SourceRange range,
                                             CheckerContext &C) const {
-  ExplodedNode *ErrNode = C.generateErrorNode();
+  ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
   if (!ErrNode)
     return;
 
@@ -250,7 +250,7 @@ SimpleErrorChecker::checkPointerEscape(ProgramStateRef State,
 // Register plugin!
 extern "C" void clang_registerCheckers(CheckerRegistry &registry) {
   registry.addChecker<SimpleErrorChecker>(
-      "example.ErrorChecker",
+      "alpha.unix.ErrorChecker2",
       "Detects mismatches between memory allocations and deallocations",
       "",false);
 }

@@ -51,6 +51,18 @@ gdb --args clang -cc1 ${=MY_INCLUDES} -analyze -load /home/mschroetter/project/S
 (gdb) br /home/mschroetter/project/SimpleErrorChecker/SimpleErrorChecker.cpp:251
 ```
 
+### Generate exploded Graph ###
+
+add the following flag to the clang -cc1 call:
+    ```
+    -analyzer-dump-egraph=FILE.dot
+    ```
+    
+to generate good html view
+```bash
+exploded-graph-rewriter.py FILE.dot
+```
+
 ## Running Tests ##
 
 ```bash
